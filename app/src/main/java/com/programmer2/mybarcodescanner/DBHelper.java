@@ -2,6 +2,7 @@ package com.programmer2.mybarcodescanner;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -11,17 +12,19 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "dbbarcode.db";
+    private static final String DATABASE_NAME = "dbscanner.db";
     private static final String TABLE_ITEM = "item";
 
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_BARCODE = "barcode";
-    private static final String COLUMN_DESCRIPTION = "name";
+    private static final String COLUMN_DESCRIPTION = "description";
+    private static final String COLUMN_QUANTITY= "quantity";
 
     private static final String TABLE_ITEM_CREATE = "create table if not exists "+TABLE_ITEM+" ("
             +COLUMN_ID+" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
             +COLUMN_BARCODE+" TEXT, "
-            +COLUMN_DESCRIPTION+" TEXT)";
+            +COLUMN_DESCRIPTION+" TEXT, "
+            +COLUMN_QUANTITY+" INTEGER)";
 
 
 
@@ -35,9 +38,14 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(TABLE_ITEM_CREATE);
     }
 
-    public void queryData(String sql){
+    public void queryDataWrite(String sql){
         SQLiteDatabase database = this.getWritableDatabase();
         database.execSQL(sql);
+    }
+
+    public Cursor queryDataRead(String sql){
+        SQLiteDatabase database = this.getReadableDatabase();
+        return database.rawQuery(sql,null);
     }
 
     @Override
@@ -53,8 +61,32 @@ public class DBHelper extends SQLiteOpenHelper {
 
         values.put(COLUMN_BARCODE, item.getBarcode());
         values.put(COLUMN_DESCRIPTION, item.getDescription());
+        values.put(COLUMN_QUANTITY, item.getQuantity());
 
         database.insert(TABLE_ITEM , null , values);
         database.close();
+    }
+
+    //SEARCH AFTER SCAN ITEM
+    public int searchForItem(String bcode) {
+        SQLiteDatabase database = this.getReadableDatabase();
+        String[] selectionArgs = new String[]{ bcode };
+        try {
+            int i = 0;
+            Cursor cursor = null;
+            cursor = database.rawQuery("select * from " + TABLE_ITEM + " where " + COLUMN_BARCODE + "=?", selectionArgs);
+            cursor.moveToFirst();
+            i = cursor.getCount();
+            cursor.close();
+            return i;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    //UPDATE ITEM QUANTITY
+    public void updateQuantity(int id,int newQuantity){
+        this.getWritableDatabase().execSQL("UPDATE "+TABLE_ITEM+" SET "+ COLUMN_QUANTITY+"='" + newQuantity + "' WHERE id='" + id + "'");
     }
 }

@@ -36,9 +36,11 @@ public class AddItem extends AppCompatActivity{
                         Item item = new Item();
                         String bcode = barcode.getText().toString().trim();
                         String des = description.getText().toString().trim();
+                        int qty = 0;
 
                         item.setBarcode(bcode);
                         item.setDescription(des);
+                        item.setQuantity(qty);
 
                         dbhelper.insertItem(item);
 
