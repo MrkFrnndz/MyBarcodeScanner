@@ -6,6 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  * Created by PROGRAMMER2 on 5/2/2017.
  */
@@ -89,4 +92,26 @@ public class DBHelper extends SQLiteOpenHelper {
     public void updateQuantity(int id,int newQuantity){
         this.getWritableDatabase().execSQL("UPDATE "+TABLE_ITEM+" SET "+ COLUMN_QUANTITY+"='" + newQuantity + "' WHERE id='" + id + "'");
     }
+
+    //GETTING VALUES IN EXCEL
+    public ArrayList<HashMap<String, String>> getAllProducts() {
+        ArrayList<HashMap<String, String>> proList;
+        proList = new ArrayList<HashMap<String, String>>();
+        String selectQuery = "SELECT  * FROM item";
+        SQLiteDatabase database = this.getWritableDatabase();
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
+                //id, barcode, description, quantity
+                HashMap<String, String> map = new HashMap<String, String>();
+                map.put(COLUMN_ID, cursor.getString(0));
+                map.put(COLUMN_BARCODE, cursor.getString(1));
+                map.put(COLUMN_DESCRIPTION, cursor.getString(2));
+                map.put(COLUMN_QUANTITY, cursor.getString(3));
+                proList.add(map);
+            } while (cursor.moveToNext());
+        }
+        return proList;
+    }
+
 }
