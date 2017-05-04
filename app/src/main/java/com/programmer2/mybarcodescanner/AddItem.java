@@ -116,7 +116,7 @@ public class AddItem extends ListActivity{
         switch (requestCode) {
             case requestcode:
                 String filepath = data.getData().getPath();
-                dbhelper = new DBHelper(getApplicationContext());
+                dbhelper = new DBHelper(this);
                 SQLiteDatabase db = dbhelper.getWritableDatabase();
                 String tableName = "item";
                 db.execSQL("delete from " + tableName);
@@ -148,10 +148,10 @@ public class AddItem extends ListActivity{
                         } catch (IOException e) {
                             if (db.inTransaction())
                             db.endTransaction();
-                            Dialog d = new Dialog(this);
-                            d.setTitle(e.getMessage().toString() + "first");
-                            Toast.makeText(AddItem.this, "Failed First", Toast.LENGTH_SHORT).show();
-                            d.show();
+                            Log.e("IOException message: ", e.getMessage());
+//                            Dialog d = new Dialog(this);
+//                            d.setTitle(e.getMessage().toString() + "first");
+//                            d.show();
                             // db.endTransaction();
                         }
                     } else {
