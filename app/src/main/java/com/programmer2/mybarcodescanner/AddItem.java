@@ -4,11 +4,12 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -50,15 +51,7 @@ public class AddItem extends ListActivity{
 
         init();
 
-        myList = dbhelper.getAllProducts();
-        if (myList.size() != 0) {
-            ListView lv = getListView();
-            adapter = new SimpleAdapter(AddItem.this, myList,
-                    R.layout.activity_excel_items, new String[]{"barcode", "description", "quantity"}, new int[]{
-                    R.id.txtItemBarcode, R.id.txtItemDescription, R.id.txtItemQuantity});
-            setListAdapter(adapter);
-            uploadResultMsg.setText("");
-        }
+
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,6 +96,16 @@ public class AddItem extends ListActivity{
             }
         });
 
+        myList = dbhelper.getAllProducts();
+        if (myList.size() != 0) {
+            ListView lv = getListView();
+            adapter = new SimpleAdapter(AddItem.this, myList,
+                    R.layout.activity_excel_items, new String[]{"barcode", "description", "quantity"}, new int[]{
+                    R.id.txtItemBarcode, R.id.txtItemDescription, R.id.txtItemQuantity});
+            setListAdapter(adapter);
+            uploadResultMsg.setText("");
+        }
+
 
     }
 
@@ -126,7 +129,7 @@ public class AddItem extends ListActivity{
                             String line = "";
                             db.beginTransaction();
                             while ((line = buffer.readLine()) != null) {
-                                String[] str = line.split("\t", 3);  // defining 3 columns with null or blank field //values acceptance
+                                String[] str = line.split("\t",3);  // defining 3 columns with null or blank field //values acceptance
                                 //id, barcode,description,quantity
                                 String barcode = str[0].toString();
                                 String description = str[1].toString();
@@ -139,11 +142,15 @@ public class AddItem extends ListActivity{
                             }
                             db.setTransactionSuccessful();
                             db.endTransaction();
+                        } catch (SQLException e) {
+                            Log.e("Error",e.getMessage().toString());
+
                         } catch (IOException e) {
                             if (db.inTransaction())
                             db.endTransaction();
                             Dialog d = new Dialog(this);
                             d.setTitle(e.getMessage().toString() + "first");
+                            Toast.makeText(AddItem.this, "Failed First", Toast.LENGTH_SHORT).show();
                             d.show();
                             // db.endTransaction();
                         }
@@ -152,6 +159,7 @@ public class AddItem extends ListActivity{
                         db.endTransaction();
                         Dialog d = new Dialog(this);
                         d.setTitle("Only CSV files allowed");
+                        Toast.makeText(AddItem.this, "Failed CSV", Toast.LENGTH_SHORT).show();
                         d.show();
                     }
                 } catch (Exception ex) {
@@ -159,6 +167,7 @@ public class AddItem extends ListActivity{
                     db.endTransaction();
                     Dialog d = new Dialog(this);
                     d.setTitle(ex.getMessage().toString() + "second");
+                    Toast.makeText(AddItem.this, "Failed Second", Toast.LENGTH_SHORT).show();
                     d.show();
                     // db.endTransaction();
                 }
