@@ -13,28 +13,47 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         //MAIN ACTIVITY
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        <!--<activity android:name=".MainActivity">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+        <!--</activity>-->
 
         //SCAN ACTIVITY
-        <activity android:name=".Scan"
-            android:parentActivityName=".MainActivity">
+        <activity android:name=".Scan">
             <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
-
-            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
         </activity>
+
         //ADD ITEM ACTIVITY
         <activity android:name=".AddItem"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".Scan">
         </activity>
+
+        //GLOBAL CLASS
+        <application android:name="com.GlobalClass">
+            <receiver
+                android:name=".BootUpReceiver"
+                android:enabled="true" >
+                <intent-filter>
+                    <action android:name="android.intent.action.MAIN" />
+
+                    <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+
+                <intent-filter>
+                    <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+                    <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
+                </intent-filter>
+                <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter" />
+
+            </receiver>
+        </application>
     </application>
 
 </manifest>
