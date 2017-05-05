@@ -32,7 +32,8 @@
 
         //ADD ITEM ACTIVITY
         <activity android:name=".AddItem"
-            android:parentActivityName=".Scan">
+            android:parentActivityName=".Scan"
+            android:label="Add Record">
         </activity>
 
         //GLOBAL CLASS

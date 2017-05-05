@@ -21,7 +21,7 @@ import android.widget.Toast;
  */
 public class Scan extends AppCompatActivity {
 
-    Button ok;
+    Button scan,add;
     EditText enterBarcode;
     TextView  code,description,quantity;
 
@@ -81,7 +81,7 @@ public class Scan extends AppCompatActivity {
         });
 
 
-        ok.setOnClickListener(new View.OnClickListener() {
+        scan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
@@ -99,6 +99,14 @@ public class Scan extends AppCompatActivity {
                 catch (Exception e){
                     e.printStackTrace();
                 }
+            }
+        });
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Scan.this,AddItem.class);
+                startActivity(intent);
             }
         });
 
@@ -144,9 +152,11 @@ public class Scan extends AppCompatActivity {
 
     private void init() {
         enterBarcode = (EditText) findViewById(R.id.etInputBarCode);
-        ok = (Button) findViewById(R.id.btnOk);
+        scan = (Button) findViewById(R.id.btnOk);
         code = (TextView) findViewById(R.id.txtCode);
         description = (TextView) findViewById(R.id.txtDescription);
         quantity = (TextView) findViewById(R.id.txtQuantity);
+        add = (Button) findViewById(R.id.btnAdd);
+
     }
 }
