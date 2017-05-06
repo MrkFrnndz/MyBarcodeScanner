@@ -1,6 +1,11 @@
 package com.programmer2.mybarcodescanner;
 
+import android.app.Dialog;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
@@ -16,6 +21,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
 /**
  * Created by PROGRAMMER2 on 5/2/2017.
  */
@@ -23,12 +31,15 @@ public class Scan extends AppCompatActivity {
 
     Button scan,add;
     EditText enterBarcode;
-    TextView  code,description,quantity;
+    TextView  code,description,quantity,usbresult;
 
     DBHelper dbhelper = new DBHelper(this);
 
     //USB Connection variables
-    UsbDevice device;
+    PendingIntent mPermissionIntent;
+    UsbDevice usbDevice;
+    UsbManager usbManager;
+    private static final String ACTION_USB_PERMISSION = "com.mobilemerit.usbhost.USB_PERMISSION";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,54 +48,51 @@ public class Scan extends AppCompatActivity {
 
         init();
 
-//        Intent intent = new Intent();
-//        device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+//        int usbAttachResult = checkUSBattached();
+//        if( usbAttachResult > 0){
+//            Toast.makeText(Scan.this, "OTG Connected!", Toast.LENGTH_SHORT).show();
 //
-//        if(device != null){
-//            Toast.makeText(Scan.this, "Device attached: " + device.toString(), Toast.LENGTH_SHORT).show();
+//            enterBarcode.addTextChangedListener(new TextWatcher() {
+//                @Override
+//                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+////                    Log.d("Hey Mark! -","Before TextChanged");
+//                }
+//
+//                @Override
+//                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+////                    Log.d("Hey Mark! -","ON TextChanged");
+//                }
+//
+//                @Override
+//                public void afterTextChanged(Editable editable) {
+//                    try {
+//                        String mCode = enterBarcode.getText().toString().trim();
+//
+//                        int result = dbhelper.searchForItem(mCode);
+//
+//                        if(result > 0){
+//                            printItem(mCode);
+//                            enterBarcode.setText("");
+//                        }
+//                        else if(result == 0){
+//                            Toast.makeText(Scan.this, "INCORRECT BARCODE!", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                    catch (Exception e){
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//        }else {
+//            Toast.makeText(Scan.this, "NO DEVICE ATTACH", Toast.LENGTH_SHORT).show();
 //        }
-//        else if(device == null){
-//            Toast.makeText(Scan.this, "Device attached: " + "NONE!", Toast.LENGTH_SHORT).show();
-//        }
-
-
-        enterBarcode.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d("Hey Mark! -","Before TextChanged");
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d("Hey Mark! -","ON TextChanged");
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                try {
-                    String mCode = enterBarcode.getText().toString().trim();
-
-                    int result = dbhelper.searchForItem(mCode);
-
-                    if(result > 0){
-                        printItem(mCode);
-                        enterBarcode.setText("");
-                    }
-                    else if(result == 0){
-                        Toast.makeText(Scan.this, "INCORRECT BARCODE!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        });
 
 
         scan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
+                    checkUSBattached();
                     String mCode = enterBarcode.getText().toString().trim();
 
                     int result = dbhelper.searchForItem(mCode);
@@ -157,6 +165,62 @@ public class Scan extends AppCompatActivity {
         description = (TextView) findViewById(R.id.txtDescription);
         quantity = (TextView) findViewById(R.id.txtQuantity);
         add = (Button) findViewById(R.id.btnAdd);
+        usbresult = (TextView) findViewById(R.id.txtResult);
 
     }
+
+
+    //CONNECTED USB CHECKER//CONNECTED USB CHECKER//
+    private void checkUSBattached() {
+        try{
+            usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        /*
+         * this block required if you need to communicate to USB devices it's
+         * take permission to device
+         * if you want than you can set this to which device you want to communicate
+         */
+            // ------------------------------------------------------------------
+            mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+            IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+            registerReceiver(mUsbReceiver, filter);
+            // -------------------------------------------------------------------
+            HashMap<String , UsbDevice> deviceList = usbManager.getDeviceList();
+            Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+            String i = "";
+            while (deviceIterator.hasNext()) {
+                usbDevice = deviceIterator.next();
+                usbManager.requestPermission(usbDevice, mPermissionIntent);
+                i += "\n" + "DeviceID: " + usbDevice.getDeviceId() + "\n"
+                        + "DeviceName: " + usbDevice.getDeviceName() + "\n"
+                        + "DeviceClass: " + usbDevice.getDeviceClass() + " - "
+                        + "DeviceSubClass: " + usbDevice.getDeviceSubclass() + "\n"
+                        + "VendorID: " + usbDevice.getVendorId() + "\n"
+                        + "ProductID: " + usbDevice.getProductId() + "\n";
+            }
+            usbresult.setText(i);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                synchronized (this) {
+                    UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    if (intent.getBooleanExtra(
+                            UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        if (device != null) {
+                            // call method to set up device communication
+                        }
+                    } else {
+                        Log.d("ERROR", "permission denied for device " + device);
+                    }
+                }
+            }
+        }
+    };
 }
