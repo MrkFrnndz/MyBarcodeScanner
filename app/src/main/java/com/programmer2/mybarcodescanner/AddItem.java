@@ -5,9 +5,11 @@ import android.app.ListActivity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
@@ -20,7 +22,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +36,7 @@ import java.util.HashMap;
 public class AddItem extends ListActivity{
 
     EditText barcode,description;
-    Button add, excel;
+    Button add, excel, export;
 
     DBHelper dbhelper = new DBHelper(this);
 
@@ -52,7 +57,7 @@ public class AddItem extends ListActivity{
         init();
 
 
-
+        //ADDING RECORDS TO TABLE ITEM
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -83,6 +88,7 @@ public class AddItem extends ListActivity{
             }
         });
 
+        //IMPORTING FILE
         excel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -92,6 +98,58 @@ public class AddItem extends ListActivity{
                     startActivityForResult(fileintent, requestcode);
                 } catch (ActivityNotFoundException e) {
                     uploadResultMsg.setText("No app found for importing the file.");
+                }
+            }
+        });
+
+        //EXPORTING FILE
+        export.setOnClickListener(new View.OnClickListener() {
+            SQLiteDatabase sqldb = dbhelper.getReadableDatabase(); //My Database class
+            Cursor cursor = null;
+
+            @Override
+            public void onClick(View view) {
+                try {
+                    cursor = sqldb.rawQuery("select * from item", null);
+                    int rowcount = 0;
+                    int colcount = 0;
+                    File sdCardDir = Environment.getExternalStorageDirectory();
+                    String filename = "MySampleExport.txt";
+                    // the name of the file to export with
+                    File saveFile = new File(sdCardDir, filename);
+                    FileWriter fw = new FileWriter(saveFile);
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    rowcount = cursor.getCount();
+                    colcount = cursor.getColumnCount();
+//                    if (rowcount > 0) {
+//                        cursor.moveToFirst();
+//                        for (int i = 1; i < colcount; i++) {
+//                            if (i != colcount - 1) {
+//                                bw.write(cursor.getColumnName(i) + "\t");
+//                            } else {
+//                                bw.write(cursor.getColumnName(i));
+//                            }
+//                        }
+//                        bw.newLine();
+                    //I COMMENTED THE ABOVE CODE SNIPPET TO REMOVE THE FIELD NAMES WHEN EXPORTING FILE
+                        for (int i = 0; i < rowcount; i++) {
+                            cursor.moveToPosition(i);
+                            for (int j = 1; j < colcount; j++) { //I'VE CHANGED THE VALUE OF VARIABLE int j to 1. (original value 0)
+                                if (j != colcount - 1)
+                                bw.write(cursor.getString(j) + "\t");
+                                else
+                                bw.write(cursor.getString(j));
+                            }
+                            bw.newLine();
+//                        }
+                        bw.flush();
+                        uploadResultMsg.setText("Exported Successfully.");
+                    }
+                } catch (Exception ex) {
+                    if (sqldb.isOpen()) {
+                        sqldb.close();
+                        uploadResultMsg.setText(ex.getMessage().toString());
+                    }
                 }
             }
         });
@@ -192,5 +250,6 @@ public class AddItem extends ListActivity{
         excel = (Button) findViewById(R.id.btnExcel);
         myListview = getListView();
         uploadResultMsg = (TextView)findViewById(R.id.txtUploadResult);
+        export = (Button) findViewById(R.id.btnExport);
     }
 }

@@ -46,10 +46,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight=".5"
-            android:text="UPLOAD FILE"
+            android:text="IMPORT FILE"
             android:id="@+id/btnExcel"
             android:textColor="#ffffff"
             android:background="#1083f5"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            android:layout_marginLeft="5dp"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="EXPORT FILE"
+            android:id="@+id/btnExport"
+            android:textColor="#ffffff"
+            android:background="#f7bd1e"
             android:textSize="18dp"
             android:textStyle="bold"
             android:layout_marginLeft="5dp"/>

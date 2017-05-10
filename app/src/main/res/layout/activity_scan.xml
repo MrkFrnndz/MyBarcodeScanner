@@ -9,55 +9,53 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@color/myColorPrimary"
-        android:padding="10dp"
-        android:gravity="center_horizontal">
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/etInputBarCode"
-            android:layout_gravity="center_horizontal"
-            android:hint="ENTER/SCAN BARCODE"
-            android:gravity="center_horizontal"
-            android:inputType="number"
-            android:textColorHint="@color/myColorAppBarLayout"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:id="@+id/dummyView"/>
-
+        android:padding="25dp"
+        android:gravity="center">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:layout_gravity="center_horizontal">
 
-
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="8"
+                android:id="@+id/etInputBarCode"
+                android:hint="SCAN BARCODE"
+                android:gravity="center_horizontal"
+                android:inputType="number"
+                android:textColorHint="@color/myColorAppBarLayout"
+                android:background="@drawable/custom_edittext"/>
 
             <Button
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3.8"
+                android:layout_marginLeft="8dp"
                 android:text="SCAN"
                 android:id="@+id/btnOk"
-                android:layout_gravity="center_horizontal"
-                android:background="@color/myColorButtonScan"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:paddingLeft="18dp"
-                android:paddingRight="18dp"
-                android:layout_marginTop="8dp"/>
-
-            <Switch
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Barcode scanner"
-                android:id="@+id/switchManual"
-                android:layout_marginTop="8dp"
-                android:layout_gravity="right"
-                android:textColor="@color/myColorButtonScan"/>
+                android:gravity="center_horizontal"
+                android:background="@drawable/custom_button_scan"
+                android:textColor="@color/myColorTextWhite"
+                android:textStyle="bold"/>
         </LinearLayout>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginRight="80dp"
+            android:id="@+id/dummyView"/>
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Barcode scanner"
+            android:id="@+id/switchManual"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="right"
+            android:textColor="@color/myColorButtonScan"/>
     </LinearLayout>
 
     CONTAINER FOR 1ST ROW
@@ -209,13 +207,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/myColorIcon"
-        android:padding="20dp">
+        android:padding="25dp"
+        android:gravity="center">
 
     <Button
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/myColorButtonAdd"
-        android:text="ADD RECORD"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_button_add"
+        android:text="+ ADD RECORD"
         android:textStyle="bold"
         android:textColor="#f1f1f1"
         android:id="@+id/btnAdd"/>
