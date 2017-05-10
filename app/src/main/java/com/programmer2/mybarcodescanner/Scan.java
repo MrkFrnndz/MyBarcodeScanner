@@ -1,12 +1,20 @@
 package com.programmer2.mybarcodescanner;
 
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,9 +23,11 @@ import android.widget.Toast;
  */
 public class Scan extends AppCompatActivity {
 
-    Button ok;
+    Button scan,add;
     EditText enterBarcode;
     TextView  code,description,quantity;
+    Switch mySwitch;
+    View dummyView;
 
     DBHelper dbhelper = new DBHelper(this);
 
@@ -26,22 +36,73 @@ public class Scan extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
 
+        //CASTING VIEWS
         init();
 
-        ok.setOnClickListener(new View.OnClickListener() {
+        manualScan();
+
+        mySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if(isChecked){
+                    enterBarcode.setText("");
+                    Toast.makeText(Scan.this, "Barcode Scan ON", Toast.LENGTH_SHORT).show();
+                    scan.setEnabled(false);
+                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorAppBarLayout));
+                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.custom_buttonscan_disable));//Change button scan color
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(enterBarcode.getWindowToken(), 0);
+                    automaticScan();
+                }
+                if(!isChecked) {
+                    Toast.makeText(Scan.this, "Manual Scan", Toast.LENGTH_SHORT).show();
+                    scan.setEnabled(true);
+                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorTextWhite));
+                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.custom_button_scan));//Change button scan color
+                    manualScan();
+                }
+            }
+        });
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Scan.this,AddItem.class);
+                startActivity(intent);
+            }
+        });
+
+    }
+
+    private void init() {
+        enterBarcode = (EditText) findViewById(R.id.etInputBarCode);
+        scan = (Button) findViewById(R.id.btnOk);
+        code = (TextView) findViewById(R.id.txtCode);
+        description = (TextView) findViewById(R.id.txtDescription);
+        quantity = (TextView) findViewById(R.id.txtQuantity);
+        add = (Button) findViewById(R.id.btnAdd);
+        mySwitch = (Switch) findViewById(R.id.switchManual);
+        dummyView = findViewById(R.id.dummyView);
+    }
+
+    private void manualScan() {
+        enterBarcode.removeTextChangedListener(myTextWatcher);
+
+        scan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
                     String mCode = enterBarcode.getText().toString().trim();
-
                     int result = dbhelper.searchForItem(mCode);
 
                     if(result > 0){
                         printItem(mCode);
-//                        Toast.makeText(Scan.this, "Item punched!", Toast.LENGTH_SHORT).show();
                     }
                     else if(enterBarcode.getText().toString().isEmpty()){
                         Toast.makeText(Scan.this, "Enter the barcode!", Toast.LENGTH_SHORT).show();
+                    }
+                    else if(result == 0){
+                        Toast.makeText(Scan.this, "Barcode no match!", Toast.LENGTH_SHORT).show();
                     }
                 }
                 catch (Exception e){
@@ -49,7 +110,12 @@ public class Scan extends AppCompatActivity {
                 }
             }
         });
+    }
 
+    private void automaticScan() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        enterBarcode.addTextChangedListener(myTextWatcher);
+        imm.hideSoftInputFromWindow(enterBarcode.getWindowToken(), 0);
     }
 
     private void printItem(String rCode) {
@@ -78,15 +144,60 @@ public class Scan extends AppCompatActivity {
 
     public void mUpdate(int id,int newCount){
         dbhelper.updateQuantity(id,newCount);
-        Toast.makeText(Scan.this, "Updated Successfully!", Toast.LENGTH_SHORT).show();
         dbhelper.close();
     }
 
-    private void init() {
-        enterBarcode = (EditText) findViewById(R.id.etInputBarCode);
-        ok = (Button) findViewById(R.id.btnOk);
-        code = (TextView) findViewById(R.id.txtCode);
-        description = (TextView) findViewById(R.id.txtDescription);
-        quantity = (TextView) findViewById(R.id.txtQuantity);
-    }
+    private TextWatcher myTextWatcher = new TextWatcher() {
+        @Override
+        public void afterTextChanged(Editable editable) {
+            try {
+                String mCode = enterBarcode.getText().toString().trim();
+                int result = dbhelper.searchForItem(mCode);
+
+                if(mCode.length() > 12){
+                    if(result > 0) {
+                        printItem(mCode);
+                        enterBarcode.removeTextChangedListener(myTextWatcher);
+                        enterBarcode.setText("");
+                        dummyView.requestFocus();
+
+                        enterBarcode.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                enterBarcode.requestFocus();
+                            }}, 1000);
+                    }
+                    else if (result <= 0){
+                        enterBarcode.removeTextChangedListener(myTextWatcher);
+                        enterBarcode.setText("");
+                        dummyView.requestFocus();
+
+                        enterBarcode.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                enterBarcode.requestFocus();
+                            }
+                        }, 1000);
+                        Toast.makeText(Scan.this, "Barcode invalid!", Toast.LENGTH_SHORT).show();
+                    }
+                    enterBarcode.addTextChangedListener(myTextWatcher);
+
+                }
+
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }};
+
 }

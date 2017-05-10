@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/myColorBackground">
 
     <EditText
         android:layout_width="match_parent"
@@ -22,10 +23,67 @@
         android:layout_gravity="center_horizontal"
         android:hint="Enter Item Description" />
 
-    <Button
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="ADD"
+            android:id="@+id/btnAdd"
+            android:layout_gravity="center_horizontal"
+            android:textColor="#ffffff"
+            android:background="#48d226"
+            android:textSize="18dp"
+            android:textStyle="bold"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="IMPORT FILE"
+            android:id="@+id/btnExcel"
+            android:textColor="#ffffff"
+            android:background="#1083f5"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            android:layout_marginLeft="5dp"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="EXPORT FILE"
+            android:id="@+id/btnExport"
+            android:textColor="#ffffff"
+            android:background="#f7bd1e"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            android:layout_marginLeft="5dp"/>
+
+    </LinearLayout>
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ADD"
-        android:id="@+id/btnAdd"
-        android:layout_gravity="center_horizontal" />
+        android:text="RESULT"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center_horizontal"
+        android:textColor="#d5f52b10"
+        android:padding="5dp"
+        android:id="@+id/txtUploadResult" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@android:id/list"
+        android:layout_marginTop="20dp"></ListView>
+
+
+
 </LinearLayout>
