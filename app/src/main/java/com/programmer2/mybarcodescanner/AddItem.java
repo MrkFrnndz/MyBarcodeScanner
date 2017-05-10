@@ -12,7 +12,7 @@ import android.widget.Toast;
  * Created by PROGRAMMER2 on 5/2/2017.
  */
 public class AddItem extends AppCompatActivity{
-
+    //IF YOU CAN READ THIS IT MEANS THE MERGING DOUBT HAS BEEN PROVED, CHEERS MARKEY!
     EditText barcode,description;
     Button add;
 
