@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!--<item android:id=”@+id/action_connect” android:title=”@string/action_connect”-->
+    <!--android:icon=”@drawable/ic_action_cast” app:showAsAction=”ifRoom” />-->
+    <item android:id="@+id/action_connect" android:title="@string/connect_to_server"
+        android:icon="@drawable/ic_line_weight_black_48dp" app:showAsAction="ifRoom"/>
+</menu>

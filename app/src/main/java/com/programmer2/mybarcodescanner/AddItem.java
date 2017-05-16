@@ -4,14 +4,19 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,22 +26,34 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.WriteAbortedException;
+import java.io.Writer;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
  * Created by PROGRAMMER2 on 5/2/2017.
  */
-public class AddItem extends ListActivity{
+public class AddItem extends AppCompatActivity{
 
     EditText barcode,description;
-    Button add, excel, export;
+    Button add, importExcel, exportExcel;
 
     DBHelper dbhelper = new DBHelper(this);
 
@@ -47,15 +64,28 @@ public class AddItem extends ListActivity{
     ArrayList<HashMap<String, String>> myList;
     public static final int requestcode = 1;
 
+    //VARIABLES WHEN CONNECTING TO SERVER IN PC
+    Context context;
+    private boolean isConnected=false;
+    private Socket socket;
+//    private PrintWriter out;
 
+
+    private FileOutputStream fos = null;
+    private OutputStream os = null;
+    private BufferedOutputStream bos = null;
+
+    private FileInputStream fis = null;
+    private BufferedInputStream bis = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_item);
 
-        init();
+        context = this; //save the context to show Toast messages
 
+        init();
 
         //ADDING RECORDS TO TABLE ITEM
         add.setOnClickListener(new View.OnClickListener() {
@@ -77,7 +107,7 @@ public class AddItem extends ListActivity{
 
                         dbhelper.insertItem(item);
 
-                        Toast.makeText(getApplicationContext(), "Successfully Added!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Successfully Added!", Toast.LENGTH_SHORT).show();
                         barcode.setText("");
                         description.setText("");
                     }
@@ -89,7 +119,7 @@ public class AddItem extends ListActivity{
         });
 
         //IMPORTING FILE
-        excel.setOnClickListener(new View.OnClickListener() {
+        importExcel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent fileintent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -103,66 +133,85 @@ public class AddItem extends ListActivity{
         });
 
         //EXPORTING FILE
-        export.setOnClickListener(new View.OnClickListener() {
+        exportExcel.setOnClickListener(new View.OnClickListener() {
             SQLiteDatabase sqldb = dbhelper.getReadableDatabase(); //My Database class
             Cursor cursor = null;
 
             @Override
             public void onClick(View view) {
                 try {
-                    cursor = sqldb.rawQuery("select * from item", null);
-                    int rowcount = 0;
-                    int colcount = 0;
-                    File sdCardDir = Environment.getExternalStorageDirectory();
-                    String filename = "MySampleExport.txt";
-                    // the name of the file to export with
-                    File saveFile = new File(sdCardDir, filename);
-                    FileWriter fw = new FileWriter(saveFile);
-                    BufferedWriter bw = new BufferedWriter(fw);
-                    rowcount = cursor.getCount();
-                    colcount = cursor.getColumnCount();
-//                    if (rowcount > 0) {
-//                        cursor.moveToFirst();
-//                        for (int i = 1; i < colcount; i++) {
-//                            if (i != colcount - 1) {
-//                                bw.write(cursor.getColumnName(i) + "\t");
-//                            } else {
-//                                bw.write(cursor.getColumnName(i));
-//                            }
-//                        }
-//                        bw.newLine();
-                    //I COMMENTED THE ABOVE CODE SNIPPET TO REMOVE THE FIELD NAMES WHEN EXPORTING FILE
-                        for (int i = 0; i < rowcount; i++) {
-                            cursor.moveToPosition(i);
-                            for (int j = 1; j < colcount; j++) { //I'VE CHANGED THE VALUE OF VARIABLE int j to 1. (original value 0)
-                                if (j != colcount - 1)
-                                bw.write(cursor.getString(j) + "\t");
-                                else
-                                bw.write(cursor.getString(j));
-                            }
-                            bw.newLine();
-//                        }
-                        bw.flush();
-                        uploadResultMsg.setText("Exported Successfully.");
-                    }
-                } catch (Exception ex) {
-                    if (sqldb.isOpen()) {
-                        sqldb.close();
-                        uploadResultMsg.setText(ex.getMessage().toString());
-                    }
+                    //SEND FILES
+                    File mSdCardDir = Environment.getExternalStorageDirectory();
+                    String mFilename = "MySampleExport.txt";
+                    File myFile = new File (mSdCardDir,mFilename);
+                    byte [] mybytearray  = new byte [(int)myFile.length()];
+                    fis = new FileInputStream(myFile);
+                    bis = new BufferedInputStream(fis);
+                    bis.read(mybytearray,0,mybytearray.length);
+                    os = socket.getOutputStream();
+
+                    os.write(mybytearray,0,mybytearray.length);
+                    os.flush();
+                } catch (IOException io){
+                    Log.e("Sending Data", "Error sending data I/O: ", io);
                 }
+
+                //WRITE FILE TO EXTERNAL STORAGE
+//                try {
+//                    cursor = sqldb.rawQuery("select * from item", null);
+//                    int rowcount = 0;
+//                    int colcount = 0;
+//                    File sdCardDir = Environment.getExternalStorageDirectory();
+//                    String filename = "MySampleExport.txt"; // the name of the file to export with
+//                    File saveFile = new File(sdCardDir, filename);
+//                    FileWriter fw = new FileWriter(saveFile);
+//                    BufferedWriter bw = new BufferedWriter(fw);
+//                    rowcount = cursor.getCount();
+//                    colcount = cursor.getColumnCount();
+////                    if (rowcount > 0) {
+////                        cursor.moveToFirst();
+////                        for (int i = 1; i < colcount; i++) {
+////                            if (i != colcount - 1) {
+////                                bw.write(cursor.getColumnName(i) + "\t");
+////                            } else {
+////                                bw.write(cursor.getColumnName(i));
+////                            }
+////                        }
+////                        bw.newLine();
+//                    //I COMMENTED THE ABOVE CODE SNIPPET TO REMOVE THE FIELD NAMES WHEN EXPORTING FILE
+//                        for (int i = 0; i < rowcount; i++) {
+//                            cursor.moveToPosition(i);
+//                            for (int j = 1; j < colcount; j++) { //I'VE CHANGED THE VALUE OF VARIABLE int j to 1. (original value 0)
+//                                if (j != colcount - 1)
+//                                bw.write(cursor.getString(j) + "\t");
+//                                else
+//                                bw.write(cursor.getString(j));
+//                            }
+//                            bw.newLine();
+////                        }
+//                        bw.flush();
+//                        uploadResultMsg.setText("Exported Successfully.");
+//                    }
+//
+//
+//                } catch (Exception ex) {
+//                    if (sqldb.isOpen()) {
+//                        sqldb.close();
+//                        uploadResultMsg.setText(ex.getMessage().toString());
+//                    }
+//                }
             }
         });
 
-        myList = dbhelper.getAllProducts();
-        if (myList.size() != 0) {
-            ListView lv = getListView();
-            adapter = new SimpleAdapter(AddItem.this, myList,
-                    R.layout.activity_excel_items, new String[]{"barcode", "description", "quantity"}, new int[]{
-                    R.id.txtItemBarcode, R.id.txtItemDescription, R.id.txtItemQuantity});
-            setListAdapter(adapter);
-            uploadResultMsg.setText("");
-        }
+//        myList = dbhelper.getAllProducts();
+//        if (myList.size() != 0) {
+//            ListView lv = getListView();
+//            adapter = new SimpleAdapter(AddItem.this, myList,
+//                    R.layout.activity_excel_items, new String[]{"barcode", "description", "quantity"}, new int[]{
+//                    R.id.txtItemBarcode, R.id.txtItemDescription, R.id.txtItemQuantity});
+//            setListAdapter(adapter);
+//            uploadResultMsg.setText("");
+//        }
 
 
     }
@@ -232,24 +281,177 @@ public class AddItem extends ListActivity{
         }
         myList= dbhelper.getAllProducts();
 
-        if (myList.size() != 0) {
-            ListView lv = getListView();
-            adapter = new SimpleAdapter(AddItem.this, myList,
-                    R.layout.activity_excel_items, new String[]{"barcode", "description", "quantity"}, new int[]{
-                    R.id.txtItemBarcode, R.id.txtItemDescription, R.id.txtItemQuantity});
-            setListAdapter(adapter);
-            uploadResultMsg.setText("Data Imported");
-        }
+//        if (myList.size() != 0) {
+//            ListView lv = getListView();
+//            adapter = new SimpleAdapter(AddItem.this, myList,
+//                    R.layout.activity_excel_items, new String[]{"barcode", "description", "quantity"}, new int[]{
+//                    R.id.txtItemBarcode, R.id.txtItemDescription, R.id.txtItemQuantity});
+//            setListAdapter(adapter);
+//            uploadResultMsg.setText("Data Imported");
+//        }
     }
-
 
     private void init() {
         barcode = (EditText) findViewById(R.id.etBarcode);
         description = (EditText) findViewById(R.id.etDescription);
         add = (Button) findViewById(R.id.btnAdd);
-        excel = (Button) findViewById(R.id.btnExcel);
-        myListview = getListView();
+        importExcel = (Button) findViewById(R.id.btnExcel);
+//        myListview = getListView();
         uploadResultMsg = (TextView)findViewById(R.id.txtUploadResult);
-        export = (Button) findViewById(R.id.btnExport);
+        exportExcel = (Button) findViewById(R.id.btnExport);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if(id == R.id.action_connect) {
+            ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
+            connectPhoneTask.execute(Constants.SERVER_IP); //try to connect to server in another thread
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        if(isConnected && os!=null) {
+            try {
+//                out.println("exit"); //tell server to exit
+                socket.close(); //close socket
+            } catch (IOException e) {
+                Log.e("remotedroid", "Error in closing socket", e);
+            }
+        }
+    }
+
+    public class ConnectPhoneTask extends AsyncTask<String,Void,Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            boolean result = true;
+            try {
+                InetAddress serverAddr = InetAddress.getByName(params[0]);
+                socket = new Socket(serverAddr, Constants.SERVER_PORT);//Open socket on server IP and port
+            } catch (IOException e) {
+                Log.e("Connecting to device : ", "Error while connecting", e);
+                result = false;
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result)
+        {
+            isConnected = result;
+            Toast.makeText(context,isConnected?"Connected to server!":"Error while connecting",Toast.LENGTH_LONG).show();
+            try {
+                if(isConnected) {
+                    try {
+                        //SEND FILES
+                        File mSdCardDir = Environment.getExternalStorageDirectory();
+                        String mFilename = "MySampleExport.txt";
+                        File myFile = new File (mSdCardDir,mFilename);
+                        byte [] mybytearray  = new byte [1024]; //(int)myFile.length()
+                        InputStream is = socket.getInputStream();
+                        FileOutputStream fos = new FileOutputStream(myFile);
+                        BufferedOutputStream bos = new BufferedOutputStream(fos);
+                        int bytesRead = is.read(mybytearray, 0, mybytearray.length);
+                        bos.write(mybytearray, 0, bytesRead);
+                        bos.close();
+//                        fis = new FileInputStream(myFile);
+//                        bis = new BufferedInputStream(fis);
+//                        bis.read(mybytearray,0,mybytearray.length);
+//                        os = socket.getOutputStream();
+//                        os.write(mybytearray,0,mybytearray.length);
+//                        os.flush();
+                    } catch (IOException io){
+                        Log.e("Sending Data: ", "Error sending data I/O: ", io);
+                    } finally {
+                        if(socket != null){
+                            try {
+                                socket.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+
+//                    os = new OutputStream() {
+//                        @Override
+//                        public void write(int i) throws IOException {
+//                            // SEND FILE
+//                            try {
+//                                File mFileDir = Environment.getExternalStorageDirectory();
+//                                String mFilename = "MySampleExport.txt";
+//                                File myFile = new File (mFileDir,mFilename);
+//                                byte [] mybytearray  = new byte [(int)myFile.length()];
+//                                fis = new FileInputStream(myFile);
+//                                bis = new BufferedInputStream(fis);
+//                                bis.read(mybytearray,0,mybytearray.length);
+//                                os = socket.getOutputStream();
+//                                Toast.makeText(AddItem.this, "Sending file"+ mybytearray.length + "bytes", Toast.LENGTH_SHORT).show();
+//                                os.write(mybytearray,0,mybytearray.length);
+//                                os.flush();
+//                                Toast.makeText(AddItem.this, "Done.", Toast.LENGTH_SHORT).show();
+//
+//                                os.close();
+//                                fis.close();
+//                                socket.close();
+//                            } catch (WriteAbortedException we){
+//                                Log.e("Your file: ", "Can't write file", we);
+//                            }
+//
+//                        }
+//                    };
+                }
+            } catch (NullPointerException e){
+                Log.e("Sending Data: ", "No files has been sent!", e);
+                Toast.makeText(context,"No files has been sent!",Toast.LENGTH_LONG).show();
+            }
+            finally {
+                if (bis != null) try {
+                    bis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (os != null) try {
+                    os.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (socket !=null) try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }
