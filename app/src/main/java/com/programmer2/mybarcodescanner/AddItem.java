@@ -32,6 +32,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -377,19 +378,19 @@ public class AddItem extends AppCompatActivity{
                         File mSdCardDir = Environment.getExternalStorageDirectory();
                         String mFilename = "MySampleExport.txt";
                         File myFile = new File (mSdCardDir,mFilename);
-                        byte [] mybytearray  = new byte [1024]; //(int)myFile.length()
-                        InputStream is = socket.getInputStream();
-                        FileOutputStream fos = new FileOutputStream(myFile);
-                        BufferedOutputStream bos = new BufferedOutputStream(fos);
-                        int bytesRead = is.read(mybytearray, 0, mybytearray.length);
-                        bos.write(mybytearray, 0, bytesRead);
-                        bos.close();
-//                        fis = new FileInputStream(myFile);
-//                        bis = new BufferedInputStream(fis);
-//                        bis.read(mybytearray,0,mybytearray.length);
-//                        os = socket.getOutputStream();
-//                        os.write(mybytearray,0,mybytearray.length);
-//                        os.flush();
+                        byte [] mybytearray  = new byte [(int)myFile.length()]; //(int)myFile.length()
+                        BufferedInputStream bis;
+                        try{
+                            bis = new BufferedInputStream(new FileInputStream(myFile));
+                            bis.read(mybytearray, 0, mybytearray.length);
+                            OutputStream os = socket.getOutputStream();
+                            os.write(mybytearray, 0, mybytearray.length);
+                            os.flush();
+                            socket.close();
+                        }catch (FileNotFoundException fnfe){
+                            fnfe.printStackTrace();
+                        }
+
                     } catch (IOException io){
                         Log.e("Sending Data: ", "Error sending data I/O: ", io);
                     } finally {
