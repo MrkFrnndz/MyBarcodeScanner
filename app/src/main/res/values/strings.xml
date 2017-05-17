@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">MyBarcodeScanner</string>
-    <string name="connect_to_server">Connect to Server</string>
+    <string name="app_name">iCollect</string>
+    <string name="add_items">Add Item</string>
+    <string name="scan_switch">Automatic Scan</string>
 </resources>

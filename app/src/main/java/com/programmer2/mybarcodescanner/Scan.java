@@ -10,6 +10,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -27,7 +29,7 @@ public class Scan extends AppCompatActivity {
     Button scan,add;
     EditText enterBarcode;
     TextView  code,description,quantity;
-    Switch mySwitch;
+//    Switch mySwitch;
     View dummyView;
 
     DBHelper dbhelper = new DBHelper(this);
@@ -42,38 +44,38 @@ public class Scan extends AppCompatActivity {
 
 
 
-        manualScan();
+//        manualScan();
 
-        mySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                if(isChecked){
-                    enterBarcode.setText("");
-                    Toast.makeText(Scan.this, "Barcode Scan ON", Toast.LENGTH_SHORT).show();
-                    scan.setEnabled(false);
-                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorAppBarLayout));
-                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.custom_buttonscan_disable));//Change button scan color
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(enterBarcode.getWindowToken(), 0);
-                    automaticScan();
-                }
-                if(!isChecked) {
-                    Toast.makeText(Scan.this, "Manual Scan", Toast.LENGTH_SHORT).show();
-                    scan.setEnabled(true);
-                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorTextWhite));
-                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.custom_button_scan));//Change button scan color
-                    manualScan();
-                }
-            }
-        });
+//        mySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+//                if(isChecked){
+//                    enterBarcode.setText("");
+//                    Toast.makeText(Scan.this, "Barcode Scan ON", Toast.LENGTH_SHORT).show();
+//                    scan.setEnabled(false);
+//                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorAppBarLayout));
+//                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.custom_buttonscan_disable));//Change button scan color
+//                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                    imm.hideSoftInputFromWindow(enterBarcode.getWindowToken(), 0);
+//                    automaticScan();
+//                }
+//                if(!isChecked) {
+//                    Toast.makeText(Scan.this, "Manual Scan", Toast.LENGTH_SHORT).show();
+//                    scan.setEnabled(true);
+//                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorTextWhite));
+//                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.custom_button_scan));//Change button scan color
+//                    manualScan();
+//                }
+//            }
+//        });
 
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(Scan.this,AddItem.class);
-                startActivity(intent);
-            }
-        });
+//        add.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent(Scan.this,AddItem.class);
+//                startActivity(intent);
+//            }
+//        });
 
     }
 
@@ -83,8 +85,8 @@ public class Scan extends AppCompatActivity {
         code = (TextView) findViewById(R.id.txtCode);
         description = (TextView) findViewById(R.id.txtDescription);
         quantity = (TextView) findViewById(R.id.txtQuantity);
-        add = (Button) findViewById(R.id.btnAdd);
-        mySwitch = (Switch) findViewById(R.id.switchManual);
+//        add = (Button) findViewById(R.id.btnAdd);
+//        mySwitch = (Switch) findViewById(R.id.switchManual);
         dummyView = findViewById(R.id.dummyView);
     }
 
@@ -168,7 +170,11 @@ public class Scan extends AppCompatActivity {
                             @Override
                             public void run() {
                                 enterBarcode.requestFocus();
-                            }}, 1000);
+                                code.setText("");
+                                description.setText("");
+                                quantity.setText("");
+                            }
+                        }, 500);
                     }
                     else if (result <= 0){
                         enterBarcode.removeTextChangedListener(myTextWatcher);
@@ -179,8 +185,11 @@ public class Scan extends AppCompatActivity {
                             @Override
                             public void run() {
                                 enterBarcode.requestFocus();
+                                code.setText("");
+                                description.setText("");
+                                quantity.setText("");
                             }
-                        }, 1000);
+                        }, 500);
                         Toast.makeText(Scan.this, "Barcode invalid!", Toast.LENGTH_SHORT).show();
                     }
                     enterBarcode.addTextChangedListener(myTextWatcher);
@@ -203,4 +212,45 @@ public class Scan extends AppCompatActivity {
 
         }};
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch(id){
+            case R.id.menu_add:
+                Intent intent = new Intent(Scan.this,AddItem.class);
+                startActivity(intent);
+                return true;
+            case R.id.menu_switch:
+                if(item.isChecked()){
+                    Toast.makeText(Scan.this, "Manual Scan", Toast.LENGTH_SHORT).show();
+                    scan.setEnabled(true);
+                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorTextWhite));
+                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.custom_button_scan));//Change button scan color
+                    manualScan();
+
+                    item.setChecked(false);
+                } else {
+                    enterBarcode.setText("");
+                    Toast.makeText(Scan.this, "Barcode Scan ON", Toast.LENGTH_SHORT).show();
+                    scan.setEnabled(false);
+                    scan.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.myColorAppBarLayout));
+                    scan.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.custom_buttonscan_disable));//Change button scan color
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(enterBarcode.getWindowToken(), 0);
+                    automaticScan();
+
+                    item.setChecked(true);
+
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 }

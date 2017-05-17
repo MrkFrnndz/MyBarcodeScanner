@@ -60,8 +60,8 @@ public class AddItem extends AppCompatActivity{
 
     //INTEGRATING EXCEL UPLOAD
     TextView uploadResultMsg;
-    ListView myListview;
-    ListAdapter adapter;
+//    ListView myListview;
+//    ListAdapter adapter;
     ArrayList<HashMap<String, String>> myList;
     public static final int requestcode = 1;
 
@@ -69,14 +69,8 @@ public class AddItem extends AppCompatActivity{
     Context context;
     private boolean isConnected=false;
     private Socket socket;
-//    private PrintWriter out;
 
-
-    private FileOutputStream fos = null;
     private OutputStream os = null;
-    private BufferedOutputStream bos = null;
-
-    private FileInputStream fis = null;
     private BufferedInputStream bis = null;
 
     @Override
@@ -102,11 +96,17 @@ public class AddItem extends AppCompatActivity{
                         String des = description.getText().toString().trim();
                         int qty = 0;
 
-                        item.setBarcode(bcode);
-                        item.setDescription(des);
-                        item.setQuantity(qty);
+                        int result = dbhelper.searchForDuplicate(bcode);
 
-                        dbhelper.insertItem(item);
+                        if(result > 0){
+                            Toast.makeText(context, "Duplicate Barcode!", Toast.LENGTH_SHORT).show();
+                            barcode.setText("");
+                        }else{
+                            item.setBarcode(bcode);
+                            item.setDescription(des);
+                            item.setQuantity(qty);
+                            dbhelper.insertItem(item);
+                        }
 
                         Toast.makeText(context, "Successfully Added!", Toast.LENGTH_SHORT).show();
                         barcode.setText("");
@@ -120,6 +120,7 @@ public class AddItem extends AppCompatActivity{
         });
 
         //IMPORTING FILE
+
         importExcel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -132,7 +133,6 @@ public class AddItem extends AppCompatActivity{
                 }
             }
         });
-
         //EXPORTING FILE
         exportExcel.setOnClickListener(new View.OnClickListener() {
             SQLiteDatabase sqldb = dbhelper.getReadableDatabase(); //My Database class
@@ -140,70 +140,58 @@ public class AddItem extends AppCompatActivity{
 
             @Override
             public void onClick(View view) {
-                try {
-                    //SEND FILES
-                    File mSdCardDir = Environment.getExternalStorageDirectory();
-                    String mFilename = "MySampleExport.txt";
-                    File myFile = new File (mSdCardDir,mFilename);
-                    byte [] mybytearray  = new byte [(int)myFile.length()];
-                    fis = new FileInputStream(myFile);
-                    bis = new BufferedInputStream(fis);
-                    bis.read(mybytearray,0,mybytearray.length);
-                    os = socket.getOutputStream();
-
-                    os.write(mybytearray,0,mybytearray.length);
-                    os.flush();
-                } catch (IOException io){
-                    Log.e("Sending Data", "Error sending data I/O: ", io);
-                }
-
                 //WRITE FILE TO EXTERNAL STORAGE
-//                try {
-//                    cursor = sqldb.rawQuery("select * from item", null);
-//                    int rowcount = 0;
-//                    int colcount = 0;
-//                    File sdCardDir = Environment.getExternalStorageDirectory();
-//                    String filename = "MySampleExport.txt"; // the name of the file to export with
-//                    File saveFile = new File(sdCardDir, filename);
-//                    FileWriter fw = new FileWriter(saveFile);
-//                    BufferedWriter bw = new BufferedWriter(fw);
-//                    rowcount = cursor.getCount();
-//                    colcount = cursor.getColumnCount();
-////                    if (rowcount > 0) {
-////                        cursor.moveToFirst();
-////                        for (int i = 1; i < colcount; i++) {
-////                            if (i != colcount - 1) {
-////                                bw.write(cursor.getColumnName(i) + "\t");
-////                            } else {
-////                                bw.write(cursor.getColumnName(i));
-////                            }
-////                        }
-////                        bw.newLine();
-//                    //I COMMENTED THE ABOVE CODE SNIPPET TO REMOVE THE FIELD NAMES WHEN EXPORTING FILE
-//                        for (int i = 0; i < rowcount; i++) {
-//                            cursor.moveToPosition(i);
-//                            for (int j = 1; j < colcount; j++) { //I'VE CHANGED THE VALUE OF VARIABLE int j to 1. (original value 0)
-//                                if (j != colcount - 1)
-//                                bw.write(cursor.getString(j) + "\t");
-//                                else
-//                                bw.write(cursor.getString(j));
+                try {
+                    cursor = sqldb.rawQuery("select * from item", null);
+                    int rowcount = 0;
+                    int colcount = 0;
+                    File sdCardDir = Environment.getExternalStorageDirectory();
+                    String filename = "MySampleExport.txt"; // the name of the file to export with
+                    File saveFile = new File(sdCardDir, filename);
+                    FileWriter fw = new FileWriter(saveFile);
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    rowcount = cursor.getCount();
+                    colcount = cursor.getColumnCount();
+//                    if (rowcount > 0) {
+//                        cursor.moveToFirst();
+//                        for (int i = 1; i < colcount; i++) {
+//                            if (i != colcount - 1) {
+//                                bw.write(cursor.getColumnName(i) + "\t");
+//                            } else {
+//                                bw.write(cursor.getColumnName(i));
 //                            }
-//                            bw.newLine();
-////                        }
-//                        bw.flush();
-//                        uploadResultMsg.setText("Exported Successfully.");
-//                    }
-//
-//
-//                } catch (Exception ex) {
-//                    if (sqldb.isOpen()) {
-//                        sqldb.close();
-//                        uploadResultMsg.setText(ex.getMessage().toString());
-//                    }
-//                }
+//                        }
+//                        bw.newLine();
+                    //I COMMENTED THE ABOVE CODE SNIPPET TO REMOVE THE FIELD NAMES WHEN EXPORTING FILE
+                        for (int i = 0; i < rowcount; i++) {
+                            cursor.moveToPosition(i);
+                            for (int j = 1; j < colcount; j++) { //I'VE CHANGED THE VALUE OF VARIABLE int j to 1. (original value 0)
+                                if (j != colcount - 1)
+                                bw.write(cursor.getString(j) + "\t");
+                                else
+                                bw.write(cursor.getString(j));
+                            }
+                            bw.newLine();
+//                        }
+                        bw.flush();
+                        uploadResultMsg.setText("");
+                    }
+                } catch (Exception ex) {
+                    if (sqldb.isOpen()) {
+                        sqldb.close();
+                        uploadResultMsg.setText(ex.getMessage().toString());
+                    }
+                } finally {
+                    if (sqldb != null){
+                        sqldb.close();
+                    }
+                }
+                if(true) {
+                    ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
+                    connectPhoneTask.execute(Constants.SERVER_IP); //try to connect to server in another thread
+                }
             }
         });
-
 //        myList = dbhelper.getAllProducts();
 //        if (myList.size() != 0) {
 //            ListView lv = getListView();
@@ -213,8 +201,6 @@ public class AddItem extends AppCompatActivity{
 //            setListAdapter(adapter);
 //            uploadResultMsg.setText("");
 //        }
-
-
     }
 
     @Override
@@ -302,40 +288,29 @@ public class AddItem extends AppCompatActivity{
         exportExcel = (Button) findViewById(R.id.btnExport);
     }
 
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        return true;
+//    }
 
-
-
-
-
-
-
-
-
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if(id == R.id.action_connect) {
-            ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
-            connectPhoneTask.execute(Constants.SERVER_IP); //try to connect to server in another thread
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        // Handle action bar item clicks here. The action bar will
+//        // automatically handle clicks on the Home/Up button, so long
+//        // as you specify a parent activity in AndroidManifest.xml.
+//        int id = item.getItemId();
+//
+//        //noinspection SimplifiableIfStatement
+//        if(id == R.id.action_connect) {
+//            ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
+//            connectPhoneTask.execute(Constants.SERVER_IP); //try to connect to server in another thread
+//            return true;
+//        }
+//
+//        return super.onOptionsItemSelected(item);
+//    }
 
     @Override
     public void onDestroy()
@@ -343,16 +318,14 @@ public class AddItem extends AppCompatActivity{
         super.onDestroy();
         if(isConnected && os!=null) {
             try {
-//                out.println("exit"); //tell server to exit
                 socket.close(); //close socket
             } catch (IOException e) {
-                Log.e("remotedroid", "Error in closing socket", e);
+                Log.e("MARKEY'S_SERVER", "Error in closing socket", e);
             }
         }
     }
 
     public class ConnectPhoneTask extends AsyncTask<String,Void,Boolean> {
-
         @Override
         protected Boolean doInBackground(String... params) {
             boolean result = true;
@@ -360,7 +333,7 @@ public class AddItem extends AppCompatActivity{
                 InetAddress serverAddr = InetAddress.getByName(params[0]);
                 socket = new Socket(serverAddr, Constants.SERVER_PORT);//Open socket on server IP and port
             } catch (IOException e) {
-                Log.e("Connecting to device : ", "Error while connecting", e);
+                Log.e("Connecting to device : ", "Error while connecting. . .", e);
                 result = false;
             }
             return result;
@@ -386,7 +359,7 @@ public class AddItem extends AppCompatActivity{
                             OutputStream os = socket.getOutputStream();
                             os.write(mybytearray, 0, mybytearray.length);
                             os.flush();
-                            socket.close();
+                            uploadResultMsg.setText("Exported Successfully.");
                         }catch (FileNotFoundException fnfe){
                             fnfe.printStackTrace();
                         }
@@ -401,36 +374,7 @@ public class AddItem extends AppCompatActivity{
                                 e.printStackTrace();
                             }
                         }
-
                     }
-
-//                    os = new OutputStream() {
-//                        @Override
-//                        public void write(int i) throws IOException {
-//                            // SEND FILE
-//                            try {
-//                                File mFileDir = Environment.getExternalStorageDirectory();
-//                                String mFilename = "MySampleExport.txt";
-//                                File myFile = new File (mFileDir,mFilename);
-//                                byte [] mybytearray  = new byte [(int)myFile.length()];
-//                                fis = new FileInputStream(myFile);
-//                                bis = new BufferedInputStream(fis);
-//                                bis.read(mybytearray,0,mybytearray.length);
-//                                os = socket.getOutputStream();
-//                                Toast.makeText(AddItem.this, "Sending file"+ mybytearray.length + "bytes", Toast.LENGTH_SHORT).show();
-//                                os.write(mybytearray,0,mybytearray.length);
-//                                os.flush();
-//                                Toast.makeText(AddItem.this, "Done.", Toast.LENGTH_SHORT).show();
-//
-//                                os.close();
-//                                fis.close();
-//                                socket.close();
-//                            } catch (WriteAbortedException we){
-//                                Log.e("Your file: ", "Can't write file", we);
-//                            }
-//
-//                        }
-//                    };
                 }
             } catch (NullPointerException e){
                 Log.e("Sending Data: ", "No files has been sent!", e);

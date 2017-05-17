@@ -88,6 +88,24 @@ public class DBHelper extends SQLiteOpenHelper {
         return 0;
     }
 
+    //SEARCH FOR DUPLICATE
+    public int searchForDuplicate(String bcode) {
+        SQLiteDatabase database = this.getReadableDatabase();
+        String[] selectionArgs = new String[]{ bcode };
+        try {
+            int i = 0;
+            Cursor cursor = null;
+            cursor = database.rawQuery("select * from " + TABLE_ITEM + " where " + COLUMN_BARCODE + "=?", selectionArgs);
+            cursor.moveToFirst();
+            i = cursor.getCount();
+            cursor.close();
+            return i;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     //UPDATE ITEM QUANTITY
     public void updateQuantity(int id,int newQuantity){
         this.getWritableDatabase().execSQL("UPDATE "+TABLE_ITEM+" SET "+ COLUMN_QUANTITY+"='" + newQuantity + "' WHERE id='" + id + "'");
