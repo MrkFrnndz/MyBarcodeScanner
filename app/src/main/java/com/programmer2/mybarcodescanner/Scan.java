@@ -1,18 +1,24 @@
 package com.programmer2.mybarcodescanner;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.menu.MenuBuilder;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -26,13 +32,15 @@ import android.widget.Toast;
  */
 public class Scan extends AppCompatActivity {
 
-    Button scan,add;
+    Button scan;
     EditText enterBarcode;
     TextView  code,description,quantity;
 //    Switch mySwitch;
     View dummyView;
 
     DBHelper dbhelper = new DBHelper(this);
+    AlertDialog.Builder builder = null;
+    AlertDialog alertDialog = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,9 +50,11 @@ public class Scan extends AppCompatActivity {
         //CASTING VIEWS
         init();
 
+        //CREATE DIALOG FOR ADMIN LOGIN
+        createMyDialog();
+        alertDialog = builder.create();
 
-
-//        manualScan();
+        manualScan();
 
 //        mySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 //            @Override
@@ -77,6 +87,44 @@ public class Scan extends AppCompatActivity {
 //            }
 //        });
 
+    }
+
+    private void createMyDialog(){
+        builder = new AlertDialog.Builder(this);
+
+        LayoutInflater inflater = getLayoutInflater();
+        final View alertLayout = inflater.inflate(R.layout.custom_alertdialog_login, null);
+        builder.setView(alertLayout);
+
+        final EditText userNum = (EditText)alertLayout.findViewById(R.id.etPass) ;
+        final Button login = (Button)alertLayout.findViewById(R.id.btnLogin) ;
+        final Button cancel = (Button)alertLayout.findViewById(R.id.btnCancel) ;
+
+
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String cNum = userNum.getText().toString();
+
+                if(cNum.equals("12345")){
+                    Intent intent = new Intent(Scan.this,AddItem.class);
+                    startActivity(intent);
+                }
+                else if(cNum.isEmpty()){
+                    Toast.makeText(Scan.this, "Empty password!", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(Scan.this, "Incorrect number!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.dismiss();
+            }
+        });
     }
 
     private void init() {
@@ -215,17 +263,25 @@ public class Scan extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main,menu);
+
+        if(menu instanceof MenuBuilder){
+            MenuBuilder m = (MenuBuilder) menu;
+            m.setOptionalIconsVisible(true);
+        }
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         int id = item.getItemId();
+
         switch(id){
             case R.id.menu_add:
-                Intent intent = new Intent(Scan.this,AddItem.class);
-                startActivity(intent);
+                alertDialog.show();
                 return true;
+
             case R.id.menu_switch:
                 if(item.isChecked()){
                     Toast.makeText(Scan.this, "Manual Scan", Toast.LENGTH_SHORT).show();
@@ -250,6 +306,7 @@ public class Scan extends AppCompatActivity {
                 }
                 return true;
             default:
+                alertDialog.dismiss();
                 return super.onOptionsItemSelected(item);
         }
     }

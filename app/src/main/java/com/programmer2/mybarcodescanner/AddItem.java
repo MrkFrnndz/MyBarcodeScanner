@@ -101,7 +101,7 @@ public class AddItem extends AppCompatActivity{
                         if(result > 0){
                             Toast.makeText(context, "Duplicate Barcode!", Toast.LENGTH_SHORT).show();
                             barcode.setText("");
-                        }else{
+                        }else if(result <= 0){
                             item.setBarcode(bcode);
                             item.setDescription(des);
                             item.setQuantity(qty);

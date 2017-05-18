@@ -20,5 +20,9 @@
     <color name="myColorEditText">#FF867D</color>
     <color name="myColorButtonScanDisable">#D82525</color>
     <color name="myColorTextWhite">#FFFFFF</color>
+
+    <!--For ADD ITEMS-->
+    <color name="myColorEditTextInAddItem">#dedede</color>
+    <color name="myColorBGinAdd">#ededed</color>
     myColorTextWhite
 </resources>
