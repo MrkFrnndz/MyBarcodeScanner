@@ -1,7 +1,7 @@
 package com.programmer2.mybarcodescanner;
 
 import android.app.Dialog;
-import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,34 +17,21 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.WriteAbortedException;
-import java.io.Writer;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -79,6 +66,8 @@ public class AddItem extends AppCompatActivity{
     private AlertDialog alertDialog = null;
     private String enteredIP = null;
 
+    private ProgressDialog myProgDialog = null;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,10 +86,10 @@ public class AddItem extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 try {
-                    if(barcode.getText().toString().trim().isEmpty() && description.getText().toString().trim().isEmpty()){
+                    if(barcode.getText().toString().trim().isEmpty() || description.getText().toString().trim().isEmpty()){
                         Toast.makeText(getApplicationContext(), "Fill all fields!", Toast.LENGTH_SHORT).show();
                     }
-                    else{
+                    else if(!barcode.getText().toString().trim().isEmpty() && !description.getText().toString().trim().isEmpty()){
                         Item item = new Item();
                         String bcode = barcode.getText().toString().trim();
                         String des = description.getText().toString().trim();
@@ -116,9 +105,10 @@ public class AddItem extends AppCompatActivity{
                             item.setDescription(des);
                             item.setQuantity(qty);
                             dbhelper.insertItem(item);
+                            Toast.makeText(context, "Successfully Added!", Toast.LENGTH_SHORT).show();
                         }
 
-                        Toast.makeText(context, "Successfully Added!", Toast.LENGTH_SHORT).show();
+
                         barcode.setText("");
                         description.setText("");
                     }
@@ -201,10 +191,7 @@ public class AddItem extends AppCompatActivity{
 
                 alertDialog.show();
 
-                if(enteredIP != null) {
-                    ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
-                    connectPhoneTask.execute(enteredIP); //try to connect to server in another thread
-                }
+
 
             }
         });
@@ -302,6 +289,8 @@ public class AddItem extends AppCompatActivity{
 //        myListview = getListView();
         uploadResultMsg = (TextView)findViewById(R.id.txtUploadResult);
         exportExcel = (Button) findViewById(R.id.btnExport);
+
+        myProgDialog = new ProgressDialog(this);
     }
 
     @Override
@@ -322,11 +311,13 @@ public class AddItem extends AppCompatActivity{
         protected Boolean doInBackground(String... params) {
             boolean result = true;
             try {
+
                 InetAddress serverAddr = InetAddress.getByName(params[0]);
                 socket = new Socket(serverAddr, Constants.SERVER_PORT);//Open socket on server IP and port
             } catch (IOException e) {
                 Log.e("Connecting to device : ", "Error while connecting. . .", e);
                 result = false;
+                myProgDialog.dismiss();
             }
             return result;
         }
@@ -352,23 +343,34 @@ public class AddItem extends AppCompatActivity{
                             os.write(mybytearray, 0, mybytearray.length);
                             os.flush();
                             uploadResultMsg.setText("Exported Successfully.");
+                            myProgDialog.dismiss();
                         }catch (FileNotFoundException fnfe){
                             fnfe.printStackTrace();
+                            myProgDialog.dismiss();
+                            Toast.makeText(AddItem.this, "Export Failed!", Toast.LENGTH_SHORT).show();
                         }
 
                     } catch (IOException io){
                         Log.e("Sending Data: ", "Error sending data I/O: ", io);
+                        myProgDialog.dismiss();
+                        Toast.makeText(AddItem.this, "Export Failed!", Toast.LENGTH_SHORT).show();
                     } finally {
                         if(socket != null){
                             try {
                                 socket.close();
+                                myProgDialog.dismiss();
                             } catch (IOException e) {
                                 e.printStackTrace();
+                                myProgDialog.dismiss();
                             }
                         }
                     }
+                } else {
+                    myProgDialog.dismiss();
+                    Toast.makeText(AddItem.this, "Export Failed!", Toast.LENGTH_SHORT).show();
                 }
             } catch (NullPointerException e){
+                myProgDialog.dismiss();
                 Log.e("Sending Data: ", "No files has been sent!", e);
                 Toast.makeText(context,"No files has been sent!",Toast.LENGTH_LONG).show();
             }
@@ -411,11 +413,21 @@ public class AddItem extends AppCompatActivity{
                 String eIp = serverIP.getText().toString();
 
 
+
                 if(!eIp.isEmpty()){
                     serverIP.setText("");
                     enteredIP = eIp;
                     alertDialog.dismiss();
+
+
+                if(enteredIP != null) {
+                    ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
+                    connectPhoneTask.execute(enteredIP); //try to connect to server in another thread
+                    alertDialog.dismiss();
+                    myProgDialog.setMessage("Connecting...");
+                    myProgDialog.show();
                 }
+                               }
                 else if(eIp.isEmpty()){
                     Toast.makeText(AddItem.this, "Empty input!", Toast.LENGTH_SHORT).show();
                 }
