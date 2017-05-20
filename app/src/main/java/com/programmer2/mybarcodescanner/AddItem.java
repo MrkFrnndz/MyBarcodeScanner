@@ -13,8 +13,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -73,6 +75,10 @@ public class AddItem extends AppCompatActivity{
     private OutputStream os = null;
     private BufferedInputStream bis = null;
 
+    private AlertDialog.Builder builder = null;
+    private AlertDialog alertDialog = null;
+    private String enteredIP = null;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +87,10 @@ public class AddItem extends AppCompatActivity{
         context = this; //save the context to show Toast messages
 
         init();
+
+        //CREATE DIALOG
+        createMyDialog();
+        alertDialog = builder.create();
 
         //ADDING RECORDS TO TABLE ITEM
         add.setOnClickListener(new View.OnClickListener() {
@@ -186,10 +196,16 @@ public class AddItem extends AppCompatActivity{
                         sqldb.close();
                     }
                 }
-                if(true) {
+
+                //CHECKING FOR SERVER IP AND AFTER IP IS RECEIVED, PROCEED TO SEND FILE IN SERVER
+
+                alertDialog.show();
+
+                if(enteredIP != null) {
                     ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
-                    connectPhoneTask.execute(Constants.SERVER_IP); //try to connect to server in another thread
+                    connectPhoneTask.execute(enteredIP); //try to connect to server in another thread
                 }
+
             }
         });
 //        myList = dbhelper.getAllProducts();
@@ -288,30 +304,6 @@ public class AddItem extends AppCompatActivity{
         exportExcel = (Button) findViewById(R.id.btnExport);
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if(id == R.id.action_connect) {
-//            ConnectPhoneTask connectPhoneTask = new ConnectPhoneTask();
-//            connectPhoneTask.execute(Constants.SERVER_IP); //try to connect to server in another thread
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
-
     @Override
     public void onDestroy()
     {
@@ -398,5 +390,46 @@ public class AddItem extends AppCompatActivity{
                 }
             }
         }
+    }
+
+
+    private void createMyDialog(){
+        builder = new AlertDialog.Builder(this);
+
+        LayoutInflater inflater = getLayoutInflater();
+        final View alertLayout = inflater.inflate(R.layout.custom_alertdialog_enter_ip, null);
+        builder.setView(alertLayout);
+
+        final EditText serverIP = (EditText)alertLayout.findViewById(R.id.etIP) ;
+        final Button submit = (Button)alertLayout.findViewById(R.id.btnSubmit) ;
+        final Button cancel = (Button)alertLayout.findViewById(R.id.btnCancel) ;
+
+
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String eIp = serverIP.getText().toString();
+
+
+                if(!eIp.isEmpty()){
+                    serverIP.setText("");
+                    enteredIP = eIp;
+                    alertDialog.dismiss();
+                }
+                else if(eIp.isEmpty()){
+                    Toast.makeText(AddItem.this, "Empty input!", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(AddItem.this, "Invalid IP!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.dismiss();
+            }
+        });
     }
 }

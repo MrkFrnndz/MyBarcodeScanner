@@ -44,11 +44,10 @@
             android:layout_gravity="center_horizontal"
             android:textColor="#ffffff"
             android:background="@drawable/custom_button_add"
-            android:backgroundTint="#55b73d"
             android:textSize="18dp"
             android:textStyle="bold"
             android:drawableTop="@drawable/ic_add_white_24dp"
-            android:padding="15dp"/>
+            android:padding="13dp"/>
 
         <Button
             android:layout_width="0dp"
@@ -58,12 +57,11 @@
             android:id="@+id/btnExcel"
             android:textColor="#ffffff"
             android:background="@drawable/custom_button_add"
-            android:backgroundTint="#2c75bc"
             android:textSize="18dp"
             android:textStyle="bold"
             android:layout_marginLeft="5dp"
             android:drawableTop="@drawable/ic_file_download_white_24dp"
-            android:padding="15dp" />
+            android:padding="13dp" />
 
         <Button
             android:layout_width="0dp"
@@ -73,12 +71,11 @@
             android:id="@+id/btnExport"
             android:textColor="#ffffff"
             android:background="@drawable/custom_button_add"
-            android:backgroundTint="#e7b732"
             android:textSize="18dp"
             android:textStyle="bold"
             android:layout_marginLeft="5dp"
             android:drawableTop="@drawable/ic_file_upload_white_24dp"
-            android:padding="15dp"/>
+            android:padding="13dp"/>
 
     </LinearLayout>
 
