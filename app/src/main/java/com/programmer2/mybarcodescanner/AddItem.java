@@ -89,8 +89,9 @@ public class AddItem extends AppCompatActivity{
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SQLiteDatabase sqldb = dbhelper.getWritableDatabase();
-                cursor = sqldb.rawQuery("select * from item", null);
+//                SQLiteDatabase sqldb = dbhelper.getWritableDatabase();
+//                cursor = sqldb.rawQuery("select * from item", null);
+                cursor = dbhelper.queryDataRead("select * from item");
 
                 try {
                     if(barcode.getText().toString().trim().isEmpty() || description.getText().toString().trim().isEmpty()){
@@ -134,7 +135,7 @@ public class AddItem extends AppCompatActivity{
                             item.setQuantity(qty);
                             dbhelper.insertItem(item);
 
-                            cursor = sqldb.rawQuery("select * from item", null);
+//                            cursor = sqldb.rawQuery("select * from item", null);
 
                             //Textview Result
                             resultMsg.setVisibility(View.VISIBLE);
@@ -189,8 +190,7 @@ public class AddItem extends AppCompatActivity{
 
             @Override
             public void onClick(View view) {
-                SQLiteDatabase sqldb = dbhelper.getReadableDatabase();
-                cursor = sqldb.rawQuery("select * from item", null);
+                cursor = dbhelper.queryDataRead("select * from item");
 
                 //WRITE FILE TO EXTERNAL STORAGE
                 try {
@@ -230,9 +230,6 @@ public class AddItem extends AppCompatActivity{
 
 
                 } catch (Exception ex) {
-                    if (sqldb.isOpen()) {
-                        sqldb.close();
-
                         //Textview Result
                         resultMsg.setVisibility(View.VISIBLE);
                         resultMsg.setText("Can't write file!");
@@ -245,14 +242,10 @@ public class AddItem extends AppCompatActivity{
                             }
                         }, 4000);
                         //resultMsg.setText(ex.getMessage().toString());
-                    }
                 }
-
                 //CHECKING FOR SERVER IP AND AFTER IP IS RECEIVED, PROCEED TO SEND FILE IN SERVER
 
                 alertDialog.show();
-
-
 
             }
         });

@@ -41,9 +41,9 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(TABLE_ITEM_CREATE);
     }
 
-    public void queryDataWrite(String sql){
+    public Cursor queryDataWrite(String sql){
         SQLiteDatabase database = this.getWritableDatabase();
-        database.execSQL(sql);
+        return database.rawQuery(sql,null);
     }
 
     public Cursor queryDataRead(String sql){
