@@ -53,7 +53,8 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_ITEM);
+        onCreate(sqLiteDatabase);
     }
 
 
@@ -132,4 +133,10 @@ public class DBHelper extends SQLiteOpenHelper {
         return proList;
     }
 
+//    @Override
+//    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+//        android.util.Log.w("Constants", "Upgrading database, which will destroy all old data");
+//        db.execSQL("DROP TABLE IF EXISTS constants");
+//        onCreate(db);
+//    }
 }

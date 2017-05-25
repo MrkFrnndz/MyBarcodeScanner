@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -48,7 +49,7 @@ public class AddItem extends AppCompatActivity{
     DBHelper dbhelper = new DBHelper(this);
 
     //INTEGRATING EXCEL UPLOAD
-    TextView uploadResultMsg;
+    TextView resultMsg;
 //    ListView myListview;
 //    ListAdapter adapter;
     ArrayList<HashMap<String, String>> myList;
@@ -68,6 +69,8 @@ public class AddItem extends AppCompatActivity{
 
     private ProgressDialog myProgDialog = null;
 
+    Cursor cursor = null;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +80,7 @@ public class AddItem extends AppCompatActivity{
 
         init();
 
+
         //CREATE DIALOG
         createMyDialog();
         alertDialog = builder.create();
@@ -85,9 +89,22 @@ public class AddItem extends AppCompatActivity{
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                SQLiteDatabase sqldb = dbhelper.getWritableDatabase();
+                cursor = sqldb.rawQuery("select * from item", null);
+
                 try {
                     if(barcode.getText().toString().trim().isEmpty() || description.getText().toString().trim().isEmpty()){
-                        Toast.makeText(getApplicationContext(), "Fill all fields!", Toast.LENGTH_SHORT).show();
+                        //Textview Result
+                        resultMsg.setVisibility(View.VISIBLE);
+                        resultMsg.setText("Fill all fields!");
+                        resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultOrange));
+
+                        resultMsg.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                resultMsg.setVisibility(View.INVISIBLE);
+                            }
+                        }, 4000);
                     }
                     else if(!barcode.getText().toString().trim().isEmpty() && !description.getText().toString().trim().isEmpty()){
                         Item item = new Item();
@@ -98,14 +115,38 @@ public class AddItem extends AppCompatActivity{
                         int result = dbhelper.searchForDuplicate(bcode);
 
                         if(result > 0){
-                            Toast.makeText(context, "Duplicate Barcode!", Toast.LENGTH_SHORT).show();
+                            //Textview Result
+                            resultMsg.setVisibility(View.VISIBLE);
+                            resultMsg.setText("Duplicate Barcode!");
+                            resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultRed));
+
+                            resultMsg.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    resultMsg.setVisibility(View.INVISIBLE);
+                                }
+                            }, 4000);
+
                             barcode.setText("");
                         }else if(result <= 0){
                             item.setBarcode(bcode);
                             item.setDescription(des);
                             item.setQuantity(qty);
                             dbhelper.insertItem(item);
-                            Toast.makeText(context, "Successfully Added!", Toast.LENGTH_SHORT).show();
+
+                            cursor = sqldb.rawQuery("select * from item", null);
+
+                            //Textview Result
+                            resultMsg.setVisibility(View.VISIBLE);
+                            resultMsg.setText("Successfully Added!");
+                            resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultGreen));
+
+                            resultMsg.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    resultMsg.setVisibility(View.INVISIBLE);
+                                }
+                            }, 4000);
                         }
 
 
@@ -129,20 +170,30 @@ public class AddItem extends AppCompatActivity{
                 try {
                     startActivityForResult(fileintent, requestcode);
                 } catch (ActivityNotFoundException e) {
-                    uploadResultMsg.setText("No app found for importing the file.");
+                    //Textview Result
+                    resultMsg.setVisibility(View.VISIBLE);
+                    resultMsg.setText("No app found for importing the file.");
+                    resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultRed));
+
+                    resultMsg.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            resultMsg.setVisibility(View.INVISIBLE);
+                        }
+                    }, 4000);
                 }
             }
         });
         //EXPORTING FILE
         exportExcel.setOnClickListener(new View.OnClickListener() {
-            SQLiteDatabase sqldb = dbhelper.getReadableDatabase(); //My Database class
-            Cursor cursor = null;
 
             @Override
             public void onClick(View view) {
+                SQLiteDatabase sqldb = dbhelper.getReadableDatabase();
+                cursor = sqldb.rawQuery("select * from item", null);
+
                 //WRITE FILE TO EXTERNAL STORAGE
                 try {
-                    cursor = sqldb.rawQuery("select * from item", null);
                     int rowcount = 0;
                     int colcount = 0;
                     File sdCardDir = Environment.getExternalStorageDirectory();
@@ -173,17 +224,27 @@ public class AddItem extends AppCompatActivity{
                             }
                             bw.newLine();
 //                        }
-                        bw.flush();
-                        uploadResultMsg.setText("");
+                            bw.flush();
+                            resultMsg.setText("");
                     }
+
+
                 } catch (Exception ex) {
                     if (sqldb.isOpen()) {
                         sqldb.close();
-                        uploadResultMsg.setText(ex.getMessage().toString());
-                    }
-                } finally {
-                    if (sqldb != null){
-                        sqldb.close();
+
+                        //Textview Result
+                        resultMsg.setVisibility(View.VISIBLE);
+                        resultMsg.setText("Can't write file!");
+                        resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultRed));
+
+                        resultMsg.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                resultMsg.setVisibility(View.INVISIBLE);
+                            }
+                        }, 4000);
+                        //resultMsg.setText(ex.getMessage().toString());
                     }
                 }
 
@@ -235,39 +296,75 @@ public class AddItem extends AppCompatActivity{
                                 contentValues.put("description", description);
                                 contentValues.put("quantity", quantity);
                                 db.insert(tableName, null, contentValues);
-                                uploadResultMsg.setText("Successfully Updated Database.");
                             }
+
                             db.setTransactionSuccessful();
+                            cursor = db.rawQuery("select * from item", null);
                             db.endTransaction();
+
+                            //Textview Result
+                            resultMsg.setVisibility(View.VISIBLE);
+                            resultMsg.setText("Successfully Imported File");
+                            resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultGreen));
+
+                            resultMsg.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    resultMsg.setVisibility(View.INVISIBLE);
+                                }
+                            }, 4000);
                         } catch (SQLException e) {
                             Log.e("Error",e.getMessage().toString());
 
                         } catch (IOException e) {
-                            if (db.inTransaction())
-                            db.endTransaction();
-                            Log.e("IOException message: ", e.getMessage());
-//                            Dialog d = new Dialog(this);
-//                            d.setTitle(e.getMessage().toString() + "first");
-//                            d.show();
-                            // db.endTransaction();
+                            if (db.inTransaction()){
+                                //Textview Result
+                                resultMsg.setVisibility(View.VISIBLE);
+                                resultMsg.setText("Failed Import File");
+                                resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultRed));
+
+                                resultMsg.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        resultMsg.setVisibility(View.INVISIBLE);
+                                    }
+                                }, 4000);
+
+                                db.endTransaction();
+                            }
                         }
                     } else {
-                        if (db.inTransaction())
-                        db.endTransaction();
-                        Dialog d = new Dialog(this);
-                        d.setTitle("Only CSV files allowed");
-                        Toast.makeText(AddItem.this, "Failed CSV", Toast.LENGTH_SHORT).show();
-                        d.show();
+                        if (db.inTransaction()){
+                            //Textview Result
+                            resultMsg.setVisibility(View.VISIBLE);
+                            resultMsg.setText("Only CSV files allowed!");
+                            resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.color.myColorResultRed));
+
+                            resultMsg.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    resultMsg.setVisibility(View.INVISIBLE);
+                                }
+                            }, 4000);
+                            db.endTransaction();
+                        }
                     }
                 } catch (Exception ex) {
-                    if (db.inTransaction())
-                    db.endTransaction();
-                    Dialog d = new Dialog(this);
-                    d.setTitle(ex.getMessage().toString() + "second");
-                    Toast.makeText(AddItem.this, "Failed Second", Toast.LENGTH_SHORT).show();
-                    d.show();
-                    // db.endTransaction();
-                }
+                    if (db.inTransaction()) {
+                        //Textview Result
+                        resultMsg.setVisibility(View.VISIBLE);
+                        resultMsg.setText("Failed Import File!");
+                        resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.color.myColorResultRed));
+
+                        resultMsg.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                resultMsg.setVisibility(View.INVISIBLE);
+                            }
+                        }, 4000);
+                        db.endTransaction();
+                    }
+                } 
         }
         myList= dbhelper.getAllProducts();
 
@@ -287,7 +384,7 @@ public class AddItem extends AppCompatActivity{
         add = (Button) findViewById(R.id.btnAdd);
         importExcel = (Button) findViewById(R.id.btnExcel);
 //        myListview = getListView();
-        uploadResultMsg = (TextView)findViewById(R.id.txtUploadResult);
+        resultMsg = (TextView)findViewById(R.id.txtResultMsg);
         exportExcel = (Button) findViewById(R.id.btnExport);
 
         myProgDialog = new ProgressDialog(this);
@@ -342,12 +439,35 @@ public class AddItem extends AppCompatActivity{
                             OutputStream os = socket.getOutputStream();
                             os.write(mybytearray, 0, mybytearray.length);
                             os.flush();
-                            uploadResultMsg.setText("Exported Successfully.");
+
+                            //Textview Result
+                            resultMsg.setVisibility(View.VISIBLE);
+                            resultMsg.setText("Exported Successfully!");
+                            resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultGreen));
+
+                            resultMsg.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    resultMsg.setVisibility(View.INVISIBLE);
+                                }
+                            }, 4000);
+
                             myProgDialog.dismiss();
                         }catch (FileNotFoundException fnfe){
                             fnfe.printStackTrace();
                             myProgDialog.dismiss();
-                            Toast.makeText(AddItem.this, "Export Failed!", Toast.LENGTH_SHORT).show();
+
+                            //Textview Result
+                            resultMsg.setVisibility(View.VISIBLE);
+                            resultMsg.setText("Export Failed!");
+                            resultMsg.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.color.myColorResultGreen));
+
+                            resultMsg.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    resultMsg.setVisibility(View.INVISIBLE);
+                                }
+                            }, 4000);
                         }
 
                     } catch (IOException io){

@@ -7,6 +7,20 @@
     android:background="@color/myColorBGinAdd"
     android:gravity="center_vertical">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RESULT"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@color/myColorBGinAdd"
+        android:padding="10dp"
+        android:textSize="18dp"
+        android:id="@+id/txtResultMsg"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"
+        android:visibility="invisible"
+        android:gravity="center_horizontal"/>
+
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -79,15 +93,7 @@
 
     </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="RESULT"
-        android:layout_marginTop="10dp"
-        android:layout_gravity="center_horizontal"
-        android:textColor="#d5f52b10"
-        android:padding="5dp"
-        android:id="@+id/txtUploadResult"/>
+
 
     <!--<ListView-->
         <!--android:layout_width="match_parent"-->

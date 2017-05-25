@@ -110,8 +110,6 @@ public class Scan extends AppCompatActivity {
                     Intent intent = new Intent(Scan.this,AddItem.class);
                     startActivity(intent);
                     alertDialog.show();
-
-                    userNum.setText("");
                 }
                 else if(cNum.isEmpty()){
                     Toast.makeText(Scan.this, "Empty password!", Toast.LENGTH_SHORT).show();
@@ -119,6 +117,9 @@ public class Scan extends AppCompatActivity {
                 else {
                     Toast.makeText(Scan.this, "Incorrect number!", Toast.LENGTH_SHORT).show();
                 }
+
+                userNum.setText("");
+                alertDialog.dismiss();
             }
         });
 
@@ -318,5 +319,11 @@ public class Scan extends AppCompatActivity {
     protected void onDestroy() {
         alertDialog.dismiss();
         super.onDestroy();
+    }
+
+    @Override
+    protected void onPostResume() {
+        alertDialog.dismiss();
+        super.onPostResume();
     }
 }
