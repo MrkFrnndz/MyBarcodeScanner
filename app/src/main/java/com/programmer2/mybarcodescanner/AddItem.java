@@ -35,7 +35,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -70,6 +73,16 @@ public class AddItem extends AppCompatActivity{
     private ProgressDialog myProgDialog = null;
 
     Cursor cursor = null;
+
+    Date currDate = new Date();
+    public static final SimpleDateFormat sdfFormat = new SimpleDateFormat( "dd-MM-yyyy hh:mm a" );
+    String dateToStr = sdfFormat.format(currDate);
+    Date strToDate = sdfFormat.parse(dateToStr);
+    String dateSaved = null;
+
+    public AddItem() throws ParseException {
+    }
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -167,7 +180,7 @@ public class AddItem extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 Intent fileintent = new Intent(Intent.ACTION_GET_CONTENT);
-                fileintent.setType("*/*");
+                fileintent.setType("text/csv");
                 try {
                     startActivityForResult(fileintent, requestcode);
                 } catch (ActivityNotFoundException e) {
@@ -191,13 +204,13 @@ public class AddItem extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 cursor = dbhelper.queryDataRead("select * from item");
-
                 //WRITE FILE TO EXTERNAL STORAGE
                 try {
                     int rowcount = 0;
                     int colcount = 0;
                     File sdCardDir = Environment.getExternalStorageDirectory();
-                    String filename = "MySampleExport.txt"; // the name of the file to export with
+                    String filename = strToDate + ".txt"; // the name of the file to export with
+                    dateSaved = filename;
                     File saveFile = new File(sdCardDir, filename);
                     FileWriter fw = new FileWriter(saveFile);
                     BufferedWriter bw = new BufferedWriter(fw);
@@ -262,8 +275,9 @@ public class AddItem extends AppCompatActivity{
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data == null)
+        if (data == null){
         return;
+        }
         switch (requestCode) {
             case requestcode:
                 String filepath = data.getData().getPath();
@@ -422,7 +436,7 @@ public class AddItem extends AppCompatActivity{
                     try {
                         //SEND FILES
                         File mSdCardDir = Environment.getExternalStorageDirectory();
-                        String mFilename = "MySampleExport.txt";
+                        String mFilename = dateSaved;
                         File myFile = new File (mSdCardDir,mFilename);
                         byte [] mybytearray  = new byte [(int)myFile.length()]; //(int)myFile.length()
                         BufferedInputStream bis;
