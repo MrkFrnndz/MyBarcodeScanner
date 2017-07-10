@@ -116,7 +116,7 @@ public class AddItem extends AppCompatActivity{
                         resultMsg.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                resultMsg.setVisibility(View.INVISIBLE);
+                                resultMsg.setVisibility(View.GONE);
                             }
                         }, 4000);
                     }
@@ -137,7 +137,7 @@ public class AddItem extends AppCompatActivity{
                             resultMsg.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    resultMsg.setVisibility(View.INVISIBLE);
+                                    resultMsg.setVisibility(View.GONE);
                                 }
                             }, 4000);
 
@@ -158,7 +158,7 @@ public class AddItem extends AppCompatActivity{
                             resultMsg.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    resultMsg.setVisibility(View.INVISIBLE);
+                                    resultMsg.setVisibility(View.GONE);
                                 }
                             }, 4000);
                         }
@@ -192,7 +192,7 @@ public class AddItem extends AppCompatActivity{
                     resultMsg.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            resultMsg.setVisibility(View.INVISIBLE);
+                            resultMsg.setVisibility(View.GONE);
                         }
                     }, 4000);
                 }
@@ -251,7 +251,7 @@ public class AddItem extends AppCompatActivity{
                         resultMsg.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                resultMsg.setVisibility(View.INVISIBLE);
+                                resultMsg.setVisibility(View.GONE);
                             }
                         }, 4000);
                         //resultMsg.setText(ex.getMessage().toString());
@@ -317,7 +317,7 @@ public class AddItem extends AppCompatActivity{
                             resultMsg.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    resultMsg.setVisibility(View.INVISIBLE);
+                                    resultMsg.setVisibility(View.GONE);
                                 }
                             }, 4000);
                         } catch (SQLException e) {
@@ -333,7 +333,7 @@ public class AddItem extends AppCompatActivity{
                                 resultMsg.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        resultMsg.setVisibility(View.INVISIBLE);
+                                        resultMsg.setVisibility(View.GONE);
                                     }
                                 }, 4000);
 
@@ -350,7 +350,7 @@ public class AddItem extends AppCompatActivity{
                             resultMsg.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    resultMsg.setVisibility(View.INVISIBLE);
+                                    resultMsg.setVisibility(View.GONE);
                                 }
                             }, 4000);
                             db.endTransaction();
@@ -366,7 +366,7 @@ public class AddItem extends AppCompatActivity{
                         resultMsg.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                resultMsg.setVisibility(View.INVISIBLE);
+                                resultMsg.setVisibility(View.GONE);
                             }
                         }, 4000);
                         db.endTransaction();
@@ -455,7 +455,7 @@ public class AddItem extends AppCompatActivity{
                             resultMsg.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    resultMsg.setVisibility(View.INVISIBLE);
+                                    resultMsg.setVisibility(View.GONE);
                                 }
                             }, 4000);
 
@@ -472,7 +472,7 @@ public class AddItem extends AppCompatActivity{
                             resultMsg.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    resultMsg.setVisibility(View.INVISIBLE);
+                                    resultMsg.setVisibility(View.GONE);
                                 }
                             }, 4000);
                         }
