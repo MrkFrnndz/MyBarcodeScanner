@@ -6,7 +6,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@color/myColorPrimary"
         android:padding="25dp"
@@ -14,26 +14,35 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:layout_gravity="center_horizontal">
 
             <EditText
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="8"
                 android:id="@+id/etInputBarCode"
                 android:hint="SCAN BARCODE"
                 android:gravity="center_horizontal"
                 android:inputType="number"
                 android:textColorHint="@color/myColorAppBarLayout"
                 android:background="@drawable/custom_edittext"/>
+            <EditText
+                android:layout_marginTop="5dp"
+                android:id="@+id/etInputQuantity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custom_edittext"
+                android:gravity="center_horizontal"
+                android:hint="QUANTITY"
+                android:text="1"
+                android:inputType="number"
+                android:textColorHint="@color/myColorAppBarLayout" />
 
             <Button
-                android:layout_width="0dp"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="3.8"
-                android:layout_marginLeft="8dp"
                 android:text="SCAN"
                 android:id="@+id/btnOk"
                 android:gravity="center_horizontal"
@@ -47,6 +56,7 @@
             android:layout_height="0dp"
             android:layout_marginRight="80dp"
             android:id="@+id/dummyView"/>
+
 
         <!--<Switch-->
             <!--android:layout_width="wrap_content"-->

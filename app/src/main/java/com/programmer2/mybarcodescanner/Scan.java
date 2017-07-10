@@ -33,10 +33,11 @@ import android.widget.Toast;
 public class Scan extends AppCompatActivity {
 
     Button scan;
-    EditText enterBarcode;
+    EditText enterBarcode,enterQuantity;
     TextView  code,description,quantity;
 //    Switch mySwitch;
     View dummyView;
+
 
     DBHelper dbhelper = new DBHelper(this);
     AlertDialog.Builder builder = null;
@@ -133,6 +134,7 @@ public class Scan extends AppCompatActivity {
 
     private void init() {
         enterBarcode = (EditText) findViewById(R.id.etInputBarCode);
+        enterQuantity = (EditText) findViewById(R.id.etInputQuantity);
         scan = (Button) findViewById(R.id.btnOk);
         code = (TextView) findViewById(R.id.txtCode);
         description = (TextView) findViewById(R.id.txtDescription);
@@ -191,8 +193,9 @@ public class Scan extends AppCompatActivity {
             mQty = cursor.getInt(3);
         }
         code.setText(mCode);
+        int enteredQuan = Integer.parseInt(enterQuantity.getText().toString().trim());
         description.setText(mDes);
-        String cMqty = Integer.toString(mQty + 1);
+        String cMqty = Integer.toString(mQty + enteredQuan);
         quantity.setText(cMqty);
 
         int newCount = Integer.parseInt(quantity.getText().toString());
